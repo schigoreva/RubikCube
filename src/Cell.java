@@ -1,3 +1,3 @@
 public enum Cell {
-    RED, GREEN, BLUE, YELLOW, WHITE, ORANGE
+    BLUE, ORANGE, GREEN, RED, WHITE,  YELLOW
 }
