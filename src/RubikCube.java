@@ -14,26 +14,12 @@ public class RubikCube {
             Cell.ORANGE, 'O',
             Cell.BLUE, 'B'
     );
-
-    private List<String> VERGES = List.of("L", "F", "R", "B", "U", "D");
-
-    private List<List<Integer>> VERGE_N = List.of(
-            List.of(5, 2, 4, 3, 1),
-            List.of(5, 3, 4, 0, 2),
-            List.of(5, 0, 4, 1, 3),
-            List.of(5, 1, 4, 2, 0),
-            List.of(0, 0, 0, 0, 0),
-            List.of(3, 4, 1, 0, 2)
-    );
-
-    private List<List<Integer>> LINK_V = List.of(
-            List.of(1, 4, 3, 5),
-            List.of(2, 4, 0, 5),
-            List.of(3, 4, 1, 5),
-            List.of(0, 4, 2, 5),
-            List.of(2, 3, 0, 1),
-            List.of(2, 1, 0, 3)
-    );
+    private final static int TOP = 0;
+    private final static int LEFT = 1;
+    private final static int FRONT = 2;
+    private final static int RIGHT = 3;
+    private final static int BACK = 4;
+    private final static int BOTTOM = 5;
 
     RubikCube(int size) {
         this.size = size;
@@ -48,80 +34,126 @@ public class RubikCube {
         }
     }
 
-    private void turnVergeRight(int verge) {
-        Cell[][] item = board[verge];
+    private void rotateFaceRight(int face) {
+        Cell[][] item = new Cell[size][size];
+        for(int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                item[i][j] = board[face][i][j];
+            }
+        }
         for (int x = 0; x < size; x++) {
             for (int y = 0; y < size; y++) {
-                board[verge][x][y] = item[y][size - x - 1];
+                board[face][x][y] = item[y][size - x - 1];
             }
         }
     }
 
-    private void turnLevel(int k) {
-        Cell[] copy = board[1][k];
-        board[1][k] = board[0][k];
-        board[0][k] = board[3][k];
-        board[3][k] = board[2][k];
-        board[2][k] = copy;
-    }
-
-    // U 1 r 1
-    void turnVerge(String command) {
-        String[] list = command.split(" ");
-        int verge = VERGES.indexOf(list[0]);
-        int k = Integer.parseInt(list[1]);
-        String turn = list[2];
-        int cnt = Integer.parseInt(list[3]) % 4;
-        if (verge != 4) {
-            turnCube(verge);
-            if (verge == 5) {
-                turnCube(verge);
-            }
-        }
-        if (turn.equals("r")) {
-            for (int i = 0; i < cnt; i++) {
-                if (k == 0) {
-                    turnVergeRight(verge);
-                }
-                turnLevel(k);
-            }
-
-        } else {
-            if (k == 0) {
-                for (int i = 0; i < (4 - cnt) % 4; i++) {
-                    turnVergeRight(verge);
-                }
-            }
-        }
-        if (verge != 4) {
-            turnCube(verge);
-            turnCube(verge);
-            if (verge != 5) {
-                turnCube(verge);
-            }
-        }
-    }
-
-    private void turnCube(int verge) {
-        Cell[][] copy = board[verge];
-        board[verge] = board[VERGE_N.get(verge).get(0)];
-        board[VERGE_N.get(verge).get(0)] = board[VERGE_N.get(verge).get(1)];
-        board[VERGE_N.get(verge).get(1)] = board[VERGE_N.get(verge).get(2)];
-        board[VERGE_N.get(verge).get(2)] = copy;
-        turnVergeRight(VERGE_N.get(verge).get(3));
+    private void rotateFaceLeft(int face) {
         for (int i = 0; i < 3; i++) {
-            turnVergeRight(VERGE_N.get(verge).get(4));
+            rotateFaceRight(face);
         }
     }
 
-    void turnCubeCommand(String command) {
-        String[] list = command.split(" ");
-        int verge = VERGES.indexOf(list[0]);
-        String turn = list[1];
-        int cnt = Integer.parseInt(list[2]);
-        if(verge != 4) {
-            for (int i = 0; i < cnt; i++) {
-                turnCube(verge);
+
+    private void rotateRowRight(int row) {
+        if (row == 0) {
+            rotateFaceRight(TOP);
+        } else if (row + 1 == size) {
+            rotateFaceLeft(BOTTOM);
+        }
+        Cell[] copy = board[FRONT][row];
+        board[FRONT][row] = board[LEFT][row];
+        board[LEFT][row] = board[BACK][row];
+        board[BACK][row] = board[RIGHT][row];
+        board[RIGHT][row] = copy;
+    }
+
+    private void rotateRowLeft(int row) {
+        for (int i = 0; i < 3; i++) {
+            rotateRowRight(row);
+        }
+    }
+
+    private void rotateRight() {
+        for (int i = 0; i < size; i++) {
+           rotateRowRight(i);
+        }
+    }
+
+    private void rotateLeft() {
+        for (int i = 0; i < 3; i++) {
+            rotateRight();
+        }
+    }
+
+    private void rotateUp() {
+        Cell[][] copy = board[FRONT];
+        board[FRONT] = board[BOTTOM];
+        board[BOTTOM] = board[BACK];
+        board[BACK] = board[TOP];
+        board[TOP] = copy;
+        rotateFaceRight(LEFT);
+        rotateFaceLeft(RIGHT);
+    }
+
+    private void rotateDown() {
+        for (int i = 0; i < 3; i++) {
+            rotateUp();
+        }
+    }
+
+    private void toTop(int face) {
+        switch (face) {
+            case LEFT:
+                rotateRight();
+                rotateUp();
+                break;
+            case FRONT:
+                rotateUp();
+                break;
+            case RIGHT:
+                rotateLeft();
+                rotateUp();
+                break;
+            case BACK:
+                rotateDown();
+                break;
+            case BOTTOM:
+                rotateUp();
+                rotateUp();
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void apply(String line) throws IllegalArgumentException {
+        String[] data = line.split(" ");
+        if (data.length != 2) {
+            throw new IllegalArgumentException("Your imput must contains exactly two arguments");
+        }
+        String command = data[0];
+        int num;
+        try {
+            num = Integer.parseInt(data[1]);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("2nd argument must be integer");
+        }
+        if (command.equals("top")) {
+            if (num < 1 || num > 6) {
+                throw new IllegalArgumentException("2nd argument must be face ID");
+            }
+            toTop(num - 1);
+        } else {
+            if (num < 1 || num > size) {
+                throw new IllegalArgumentException("2nd argument must be row number");
+            }
+            if (command.equals("right")) {
+                rotateRowRight(num - 1);
+            } else if (command.equals("left")) {
+                rotateRowLeft(num - 1);
+            } else {
+                throw new IllegalArgumentException("unknown command");
             }
         }
     }
