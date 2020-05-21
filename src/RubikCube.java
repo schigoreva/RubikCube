@@ -2,6 +2,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class RubikCube {
 
     private Cell[][][] board;
@@ -55,7 +56,7 @@ public class RubikCube {
     }
 
 
-    private void rotateRowRight(int row) {
+    void rotateRowRight(int row) {
         if (row == 0) {
             rotateFaceRight(TOP);
         } else if (row + 1 == size) {
@@ -68,7 +69,7 @@ public class RubikCube {
         board[RIGHT][row] = copy;
     }
 
-    private void rotateRowLeft(int row) {
+    void rotateRowLeft(int row) {
         for (int i = 0; i < 3; i++) {
             rotateRowRight(row);
         }
@@ -102,7 +103,7 @@ public class RubikCube {
         }
     }
 
-    private void toTop(int face) {
+    void toTop(int face) {
         switch (face) {
             case LEFT:
                 rotateRight();
